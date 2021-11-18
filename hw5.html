@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Slinger program by Sui Jiet Tay</title>
+  </head>
+  <body>
+    <canvas id="myCanvas" 
+	    width="600" height="300">
+    </canvas>
+    <br/>
+    <br/>
+    <sup>left</sup>
+    <input id="sliderX" type="range" min="0" max="100" />
+    <sup>right</sup>
+    <br/>
+    <sup>up  </sup>
+    <input id="sliderY" type="range" min="0" max="100" class= "vertical" orient="vertical" />  
+    <sup>down</sup>
+    </br>
+    <button id="slingButton">Sling!</button>
+    </br>
+    <button id="fireButton">Fire Boomerang! </button>
+    </br>
+    </br>
+    <i> - Press "Spacebar" - to show boomerang trajectory AFTER fire button is pressed</i>
+    </br>
+    </br>
+    <i> The rock only fires ONCE, while the boomerang allows repeated attempts upon returning to the alienship</i>
+    </br>
+    <b> To reload the slingshot or to restart the game, refresh the page</b>
+    </br>
+    <script type="text/javascript" src="gl-matrix-min.js"> </script>
+    <script src="hw4.js" id="module"></script>
+  </body>
+</html>
