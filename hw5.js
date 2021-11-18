@@ -15,13 +15,26 @@ function setup() {
 	var keyA = false;
 	var keyS = false;
 	var keyD = false;
-
-	var ballRotationTransform = mat4.create();
-	var degD = 0;
 	var displacementLR = 0;
+	var speedOfDisplacementLR = 3;
+
 
 	// Sphere variables
-	var diameterOfSphere = 10.0;
+	var ballRotationTransform = mat4.create();
+	var diameterOfSphere = 7.0;
+	var degD = 0;
+	var speedOfDegRotationLR = 10;
+
+	var degOfForwardRotation = 0;
+	var speedOfForwardRotation = 15;
+
+	
+
+	var sphereAnimatorTracker = null;
+	var speedOfSphereRender = 1000;
+
+	// runway variables
+	var widthOfRunWay = 27;
 
 	// This function draws onto canvas
     function draw() {
@@ -69,29 +82,29 @@ function setup() {
 
 			// Runway in front of the ball
 			// Right edge
-			moveToTx([20, elevation, 0], Tx);
-			lineToTx([20, elevation, 30], Tx)
+			moveToTx([widthOfRunWay, elevation, 0], Tx);
+			lineToTx([widthOfRunWay, elevation, 30], Tx)
 
 			// Left edge
-			moveToTx([-20, elevation, 0], Tx);
-			lineToTx([-20, elevation, 30], Tx)
+			moveToTx([-widthOfRunWay, elevation, 0], Tx);
+			lineToTx([-widthOfRunWay, elevation, 30], Tx)
 
 			// Runway behind the ball
 			// Right edge
-			moveToTx([20, elevation, 0], Tx);
-			lineToTx([20, elevation, -30], Tx)
+			moveToTx([widthOfRunWay, elevation, 0], Tx);
+			lineToTx([widthOfRunWay, elevation, -30], Tx)
 
 			// Left edge
-			moveToTx([-20, elevation, 0], Tx);
-			lineToTx([-20, elevation, -30], Tx)
+			moveToTx([-widthOfRunWay, elevation, 0], Tx);
+			lineToTx([-widthOfRunWay, elevation, -30], Tx)
 
 			
 			// Border lines
-			moveToTx([20, elevation, 30], Tx);
-			lineToTx([-20, elevation, 30], Tx)
+			moveToTx([widthOfRunWay, elevation, 30], Tx);
+			lineToTx([-widthOfRunWay, elevation, 30], Tx)
 
-			moveToTx([20, elevation, -30], Tx);
-			lineToTx([-20, elevation, -30], Tx)
+			moveToTx([widthOfRunWay, elevation, -30], Tx);
+			lineToTx([-widthOfRunWay, elevation, -30], Tx)
 
 			context.stroke();
 		}
@@ -143,27 +156,36 @@ function setup() {
 		
 		// Controls
 		if(keyD == true){
-			degD += 7;
-			displacementLR += 1;
+			degD += speedOfDegRotationLR;
+			displacementLR += speedOfDisplacementLR;
 			if(degD >=360){degD = 0;}
 
 			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
-			mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
+			//mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
 			
 		}else if(keyA == true){
-			degD += 7;
-			displacementLR -= 1;
+			degD += speedOfDegRotationLR;
+			displacementLR -= speedOfDisplacementLR;
 			if(degD >=360){degD = 0;}
 			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]);
-			mat4.rotate(ballRotationTransform, ballRotationTransform, (degD)*Math.PI/180, [0, 0, 1]);
+			//mat4.rotate(ballRotationTransform, ballRotationTransform, (degD)*Math.PI/180, [0, 0, 1]);
 		}
 
-		function drawSphere(degIntervals){
+
+		// Functions
+		// Draw definitions
+
+		function DrawSphere(degIntervals){
 			// Create transform t_VP_CAM that incorporates
 			// Viewport and Camera transformations
 			// var tVP_PROJ_CAM = mat4.create();
 			// mat4.multiply(tVP_PROJ_CAM,tVP_PROJ,TlookAt);
 			// drawTrajectory(0.0, 2.0, 100, CircleY, tVP_PROJ_CAM, "green");
+
+
+			// ROTATION HERE REVERSES DOES NOT GO FORWARD WHYYYYY!!???
+			//if(degOfForwardRotation >= 360){degOfForwardRotation = 0;}
+			//mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
 
 
 			// Rotate along X axis
@@ -173,7 +195,6 @@ function setup() {
 				mat4.multiply(tVP_PROJ_CAM2,tVP_PROJ, TlookAt);
 				mat4.multiply(tVP_PROJ_CAM2, tVP_PROJ_CAM2, ballRotationTransform);
 				mat4.rotate(tVP_PROJ_CAM2, tVP_PROJ_CAM2, deg*Math.PI/180, [1, 0, 0]);
-				
 				drawTrajectory(0.0, 2.0, 100, CircleY, tVP_PROJ_CAM2, "green");
 
 				deg += degIntervals;
@@ -205,19 +226,20 @@ function setup() {
 
 		}
 
-		// Draw 
-
-		// draws sphere
-		
-
-		
-		drawSphere(30);
-		
+		// Draw
+		DrawSphere(180);
 
 		// draws runway
 		var tVP_PROJ_CAM3 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM3,tVP_PROJ, TlookAt);
 		drawRunway("red", tVP_PROJ_CAM3);
+
+	}
+
+	// animators
+	function sphereAnimator(){
+		degOfForwardRotation += speedOfForwardRotation;
+		draw();
 
 	}
     
@@ -285,9 +307,13 @@ function setup() {
 
 	sliderX.addEventListener("input",draw);
     sliderY.addEventListener("input",draw);
+
+	sphereAnimatorTracker = setInterval(sphereAnimator, speedOfSphereRender);
 	
 
     draw();
+
+
 }
 window.onload = setup;
 
