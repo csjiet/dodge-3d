@@ -18,6 +18,7 @@ function setup() {
 
 	var ballRotationTransform = mat4.create();
 	var degD = 0;
+	var displacementLR = 0;
 
 	// This function draws onto canvas
     function draw() {
@@ -132,11 +133,20 @@ function setup() {
 		var TlookAt = mat4.create();
 		mat4.lookAt(TlookAt, locCamera, locTarget, vecUp);
 		
+		// Controls
 		if(keyD == true){
 			degD += 1;
+			displacementLR += 5;
 			if(degD >=360){degD = 0;}
+
+			//mat4.fromTranslation(ballRotationTransform, ); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
 			mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
 			
+		}else if(keyA == true){
+			degD += 1;
+			displacementLR += 5;
+			if(degD >=360){degD = 0;}
+			mat4.rotate(ballRotationTransform, ballRotationTransform, (degD)*Math.PI/180, [0, 0, 1]);
 		}
 
 		function drawSphere(degIntervals){
@@ -145,8 +155,6 @@ function setup() {
 			// var tVP_PROJ_CAM = mat4.create();
 			// mat4.multiply(tVP_PROJ_CAM,tVP_PROJ,TlookAt);
 			// drawTrajectory(0.0, 2.0, 100, CircleY, tVP_PROJ_CAM, "green");
-
-			
 
 
 			// Rotate along X axis
