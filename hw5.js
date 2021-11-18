@@ -10,6 +10,15 @@ function setup() {
     var sliderY = document.getElementById('sliderY');
     sliderY.value = 0;
 
+	// Keyboard variables
+	var keyW = false;
+	var keyA = false;
+	var keyS = false;
+	var keyD = false;
+
+	var ballRotationTransform = mat4.create();
+	var degD = 0;
+
 	// This function draws onto canvas
     function draw() {
 		canvas.width = canvas.width;
@@ -50,9 +59,30 @@ function setup() {
 			context.beginPath();
 	    	context.strokeStyle = color;
 
+			var elevation = -5;
+
 			// drawn on x, z plane
-			moveToTx([30, 0, 0], Tx);
-			lineToTx([30, 0, 90], Tx)
+			// Right edge
+			moveToTx([20, elevation, 0], Tx);
+			lineToTx([20, elevation, 30], Tx)
+
+			// Left edge
+			moveToTx([-20, elevation, 0], Tx);
+			lineToTx([-20, elevation, 30], Tx)
+
+			// Right edge
+			moveToTx([20, elevation, 0], Tx);
+			lineToTx([20, elevation, -30], Tx)
+
+			// Left edge
+			moveToTx([-20, elevation, 0], Tx);
+			lineToTx([-20, elevation, -30], Tx)
+
+			moveToTx([20, elevation, 30], Tx);
+			lineToTx([-20, elevation, 30], Tx)
+
+			moveToTx([20, elevation, -30], Tx);
+			lineToTx([-20, elevation, -30], Tx)
 
 			context.stroke();
 		}
@@ -74,7 +104,7 @@ function setup() {
 
 		// Create ViewPort transform
 		var Tviewport = mat4.create();
-		mat4.fromTranslation(Tviewport,[200,300,0]);  // Move the center of the
+		mat4.fromTranslation(Tviewport,[270,300,0]);  // Move the center of the
 													// "lookAt" transform (where
 													// the camera points) to the
 													// canvas coordinates (200,300)
@@ -102,7 +132,13 @@ function setup() {
 		var TlookAt = mat4.create();
 		mat4.lookAt(TlookAt, locCamera, locTarget, vecUp);
 		
-		
+		if(keyD == true){
+			degD += 1;
+			if(degD >=360){degD = 0;}
+			mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
+			
+		}
+
 		function drawSphere(degIntervals){
 			// Create transform t_VP_CAM that incorporates
 			// Viewport and Camera transformations
@@ -110,13 +146,17 @@ function setup() {
 			// mat4.multiply(tVP_PROJ_CAM,tVP_PROJ,TlookAt);
 			// drawTrajectory(0.0, 2.0, 100, CircleY, tVP_PROJ_CAM, "green");
 
+			
+
 
 			// Rotate along X axis
 			var deg = 0;
 			while(deg <= 360){
 				var tVP_PROJ_CAM2 = mat4.create();
 				mat4.multiply(tVP_PROJ_CAM2,tVP_PROJ, TlookAt);
+				mat4.multiply(tVP_PROJ_CAM2, tVP_PROJ_CAM2, ballRotationTransform);
 				mat4.rotate(tVP_PROJ_CAM2, tVP_PROJ_CAM2, deg*Math.PI/180, [1, 0, 0]);
+				
 				drawTrajectory(0.0, 2.0, 100, CircleY, tVP_PROJ_CAM2, "green");
 
 				deg += degIntervals;
@@ -127,6 +167,7 @@ function setup() {
 			while(deg <= 360){
 				var tVP_PROJ_CAM2 = mat4.create();
 				mat4.multiply(tVP_PROJ_CAM2,tVP_PROJ, TlookAt);
+				mat4.multiply(tVP_PROJ_CAM2, tVP_PROJ_CAM2, ballRotationTransform);
 				mat4.rotate(tVP_PROJ_CAM2, tVP_PROJ_CAM2, deg*Math.PI/180, [0, 1, 0]);
 				drawTrajectory(0.0, 2.0, 100, CircleX, tVP_PROJ_CAM2, "green");
 
@@ -138,6 +179,7 @@ function setup() {
 			while(deg <= 360){
 				var tVP_PROJ_CAM2 = mat4.create();
 				mat4.multiply(tVP_PROJ_CAM2,tVP_PROJ, TlookAt);
+				mat4.multiply(tVP_PROJ_CAM2, tVP_PROJ_CAM2, ballRotationTransform);
 				mat4.rotate(tVP_PROJ_CAM2, tVP_PROJ_CAM2, deg*Math.PI/180, [0, 0, 1]);
 				drawTrajectory(0.0, 2.0, 100, CircleX, tVP_PROJ_CAM2, "green");
 
@@ -146,16 +188,88 @@ function setup() {
 
 		}
 
-		drawSphere(15);
+		// Draw 
 
+		// draws sphere
+		
+
+		
+		drawSphere(15);
+		
+
+		// draws runway
 		var tVP_PROJ_CAM3 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM3,tVP_PROJ, TlookAt);
 		drawRunway("red", tVP_PROJ_CAM3);
 
 	}
     
-    sliderX.addEventListener("input",draw);
+    
+	//event listener
+	function onKeyDown(event) {
+		var keyCode = event.keyCode;
+		switch (keyCode) {
+			case 68: //d
+
+				keyD = true;
+				break;
+
+			case 83: //s
+
+				keyS = true;
+				break;
+
+			case 65: //a
+
+				keyA = true;
+				break;
+
+			case 87: //w
+
+				keyW = true;
+				break;
+		}
+
+		//console.log(keyD, keyS, keyA, keyW); // tester
+		draw();
+	}
+
+	function onKeyUp(event) {
+		var keyCode = event.keyCode;
+
+		switch (keyCode) {
+			case 68: //d
+
+				keyD = false;
+				break;
+
+			case 83: //s
+
+				keyS = false;
+				break;
+
+			case 65: //a
+
+				keyA = false;
+				break;
+
+			case 87: //w
+
+				keyW = false;
+				break;
+		}
+
+		draw();
+	
+	}
+
+	window.addEventListener("keydown", onKeyDown, false);
+	window.addEventListener("keyup", onKeyUp, false);
+
+	sliderX.addEventListener("input",draw);
     sliderY.addEventListener("input",draw);
+	
+
     draw();
 }
 window.onload = setup;
