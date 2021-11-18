@@ -1,24 +1,50 @@
 function setup() {
+
+	// Canvas variables
     var canvas = document.getElementById('myCanvas');
     var context = canvas.getContext('2d');
-    var slider1 = document.getElementById('sliderX');
-    slider1.value = 0;
-    var slider2 = document.getElementById('sliderY');
-    slider2.value = 0;
 
+	// Slider variables
+    var sliderX = document.getElementById('sliderX');
+    sliderX.value = 0;
+    var sliderY = document.getElementById('sliderY');
+    sliderY.value = 0;
+
+	// This function draws onto canvas
     function draw() {
 	canvas.width = canvas.width;
 
 	// use the sliders to get the angles
-    var viewAngle = slider2.value*0.02*Math.PI;
+    var viewAngle = sliderY.value*0.02*Math.PI;
 
-     
+    // Draw stroke functions
 	function moveToTx(loc,Tx)
 	{var res=vec3.create(); vec3.transformMat4(res,loc,Tx); context.moveTo(res[0],res[1]);}
 
 	function lineToTx(loc,Tx)
 	{var res=vec3.create(); vec3.transformMat4(res,loc,Tx); context.lineTo(res[0],res[1]);}
 	
+
+	function Curve(t){
+        //var result = [10.0*Math.cos(2.0*Math.PI*t),8.0*t,10.0*Math.sin(2.0*Math.PI*t)];
+		var result = [10.0*Math.cos(2.0*Math.PI*t),1,10.0*Math.sin(2.0*Math.PI*t)];
+        return result;
+    }
+
+	function drawTrajectory(t_begin,t_end,intervals,C,Tx,color) {
+	    context.strokeStyle=color;
+	    context.beginPath();
+        moveToTx(C(t_begin),Tx);
+        for(var i=1;i<=intervals;i++){
+            var t=((intervals-i)/intervals)*t_begin+(i/intervals)*t_end;
+            lineToTx(C(t),Tx);
+        }
+        context.stroke();
+	}
+
+
+
+
     // Create ViewPort transform
     var Tviewport = mat4.create();
 	mat4.fromTranslation(Tviewport,[200,300,0]);  // Move the center of the
@@ -32,12 +58,36 @@ function setup() {
     // (orthographic for now)
     var Tprojection = mat4.create();
     mat4.ortho(Tprojection,-10,10,-10,10,-1,1);
-    // mat4.perspective(Tprojection,Math.PI/5,1,-1,1); // Use for perspective teaser!
+    //mat4.perspective(Tprojection,Math.PI/5,1,-1,1); // Use for perspective teaser!
+
+	// COMBINE VIEWPOINT * PROJECTION
+	var tVP_PROJ = mat4.create();
+	mat4.multiply(tVP_PROJ, Tviewport, Tprojection);
+
+	// Look at transform
+	var locCamera = vec3.create();
+	var distCamera = 40.0;
+	locCamera[0] = distCamera*Math.sin(viewAngle);
+	locCamera[1] = 10;
+    locCamera[2] = distCamera*Math.cos(viewAngle);
+    var locTarget = vec3.fromValues(0,0,0); // Aim at the origin of the world coords
+    var vecUp = vec3.fromValues(0,1,0);
+	var TlookAt = mat4.create();
+    mat4.lookAt(TlookAt, locCamera, locTarget, vecUp);
+    
+    
+    // Create transform t_VP_CAM that incorporates
+    // Viewport and Camera transformations
+    var tVP_PROJ_CAM = mat4.create();
+    mat4.multiply(tVP_PROJ_CAM,tVP_PROJ,TlookAt);
+	drawTrajectory(0.0, 2.0, 100, Curve, tVP_PROJ_CAM, "green");
+
+
 
     }
     
-    slider1.addEventListener("input",draw);
-    slider2.addEventListener("input",draw);
+    sliderX.addEventListener("input",draw);
+    sliderY.addEventListener("input",draw);
     draw();
 }
 window.onload = setup;
