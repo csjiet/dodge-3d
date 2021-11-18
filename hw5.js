@@ -20,6 +20,9 @@ function setup() {
 	var degD = 0;
 	var displacementLR = 0;
 
+	// Sphere variables
+	var diameterOfSphere = 10.0;
+
 	// This function draws onto canvas
     function draw() {
 		canvas.width = canvas.width;
@@ -37,7 +40,7 @@ function setup() {
 		
 		function CircleY(t){
 			//var result = [10.0*Math.cos(2.0*Math.PI*t),8.0*t,10.0*Math.sin(2.0*Math.PI*t)];
-			var result = [10.0*Math.cos(2.0*Math.PI*t),0,10.0*Math.sin(2.0*Math.PI*t)];
+			var result = [diameterOfSphere*Math.cos(2.0*Math.PI*t),0,diameterOfSphere*Math.sin(2.0*Math.PI*t)];
 			// var l = t// longitude
 			// var c = t// colatitude
 			// var result = [10.0*Math.cos(l)*Math.sin(c/2), 10.0*Math.sin(l)*Math.sin(c/2), 10.0*Math.cos(c/2)];
@@ -46,13 +49,13 @@ function setup() {
 
 		function CircleX(t){
 			//var result = [10.0*Math.cos(2.0*Math.PI*t),8.0*t,10.0*Math.sin(2.0*Math.PI*t)];
-			var result = [0, 10.0*Math.cos(2.0*Math.PI*t),10.0*Math.sin(2.0*Math.PI*t)];
+			var result = [0, diameterOfSphere*Math.cos(2.0*Math.PI*t),diameterOfSphere*Math.sin(2.0*Math.PI*t)];
 			return result;
 		}
 
 		function CircleZ(t){
 			//var result = [10.0*Math.cos(2.0*Math.PI*t),8.0*t,10.0*Math.sin(2.0*Math.PI*t)];
-			var result = [10.0*Math.cos(2.0*Math.PI*t),10.0*Math.sin(2.0*Math.PI*t,0)];
+			var result = [diameterOfSphere*Math.cos(2.0*Math.PI*t),diameterOfSphere*Math.sin(2.0*Math.PI*t,0)];
 			return result;
 		}
 
@@ -63,6 +66,8 @@ function setup() {
 			var elevation = -5;
 
 			// drawn on x, z plane
+
+			// Runway in front of the ball
 			// Right edge
 			moveToTx([20, elevation, 0], Tx);
 			lineToTx([20, elevation, 30], Tx)
@@ -71,6 +76,7 @@ function setup() {
 			moveToTx([-20, elevation, 0], Tx);
 			lineToTx([-20, elevation, 30], Tx)
 
+			// Runway behind the ball
 			// Right edge
 			moveToTx([20, elevation, 0], Tx);
 			lineToTx([20, elevation, -30], Tx)
@@ -79,6 +85,8 @@ function setup() {
 			moveToTx([-20, elevation, 0], Tx);
 			lineToTx([-20, elevation, -30], Tx)
 
+			
+			// Border lines
 			moveToTx([20, elevation, 30], Tx);
 			lineToTx([-20, elevation, 30], Tx)
 
@@ -135,17 +143,18 @@ function setup() {
 		
 		// Controls
 		if(keyD == true){
-			degD += 1;
-			displacementLR += 5;
+			degD += 7;
+			displacementLR += 1;
 			if(degD >=360){degD = 0;}
 
-			//mat4.fromTranslation(ballRotationTransform, ); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
+			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
 			mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
 			
 		}else if(keyA == true){
-			degD += 1;
-			displacementLR += 5;
+			degD += 7;
+			displacementLR -= 1;
 			if(degD >=360){degD = 0;}
+			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]);
 			mat4.rotate(ballRotationTransform, ballRotationTransform, (degD)*Math.PI/180, [0, 0, 1]);
 		}
 
@@ -202,7 +211,7 @@ function setup() {
 		
 
 		
-		drawSphere(15);
+		drawSphere(30);
 		
 
 		// draws runway
