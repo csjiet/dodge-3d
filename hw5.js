@@ -32,15 +32,55 @@ function setup() {
 
 	// Pillar variables
 	var pillarAnimatorTracker = null;
-	var speedOfPillarRender = 1000;
+	var pillarGeneratorTracker = null;
+	var speedOfPillarRender = 200;
+	var speedOfPillarGenerator = 3000;
 
-	var numberOfPillarPositions = 5;
-	var currentPillarPosition = 0;
-	var arrayOfPillarXDisplacements = [0, 1, -1, 5, -5];
+	var posXPillar = 0;
+	var arrayOfPillarXDisplacements = [0, 10, -10, 20, -30];
+	var arrayOfPillarZDisplacements = [250, 280, 290, 330];
+
+	var posZPillar = 250;
+	var displacementZPillar = 10;
+
+	
+
+	var pillarQueue = [];
+
+	class Pillar{
+		constructor(x, y, z, color, generateStatus){
+			this.posX = x;
+			this.posY = y;
+			this.posZ = z;
+			this.color = color;
+			this.generateStatus = generateStatus;
+		}
+	}
+
+
 
 	// runway variables
 	var widthOfRunWay = 27;
 
+	// Functions
+
+	// PillarGenerator
+	function pillarGenerator(){
+		// function is called periodically
+
+		// add pillar object into queue
+		posXPillar = Math.floor(Math.random() * (arrayOfPillarXDisplacements.length - 0) + 0);
+
+		posZPillar = Math.floor(Math.random() * (arrayOfPillarZDisplacements,length - 0) + 0);
+
+		var newPillar = new Pillar(arrayOfPillarXDisplacements[posXPillar], 0, arrayOfPillarZDisplacements[posZPillar], "black", false);
+
+		pillarQueue.push(newPillar);
+
+
+	}
+
+	
 	// This function draws onto canvas
     function draw() {
 		canvas.width = canvas.width;
@@ -126,12 +166,15 @@ function setup() {
 			context.stroke();
 		}
 
-		function DrawVerticalPillar(color, Tx){
+		function DrawVerticalPillar(color, Tx, posX, posY, posZ){
 			context.beginPath();
 	    	context.strokeStyle = color;
 
+			posZPillar -= displacementZPillar;
+
 			var positionOfPillar = mat4.create();
-			mat4.fromTranslation(positionOfPillar, [arrayOfPillarXDisplacements[currentPillarPosition], 0, 0]);
+			//mat4.fromTranslation(positionOfPillar, [arrayOfPillarXDisplacements[posXPillar], 0, posZPillar]);
+			mat4.fromTranslation(positionOfPillar, [posX, posY, posZ]);
 			mat4.multiply(Tx, Tx, positionOfPillar);
 
 			// bottom view
@@ -171,6 +214,20 @@ function setup() {
 			context.stroke();
 		}
 
+		function DrawAllVerticalPillars(Tx){
+			
+			for(let i = 0; i< pillarQueue.length; i++){
+				var p = pillarQueue[i];
+				if(p.posZ <= -40){
+					pillarQueue.shift();
+				}else{
+					DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
+				}
+
+			}
+
+		}
+
 
 
 
@@ -187,7 +244,7 @@ function setup() {
 		// (orthographic for now)
 		var Tprojection = mat4.create();
 		//mat4.ortho(Tprojection,-10,10,-10,10,-1,1);
-		mat4.perspective(Tprojection,Math.PI/5,1,-1,1); // Use for perspective teaser!
+		mat4.perspective(Tprojection,Math.PI/5,1,-1000,1000); // Use for perspective teaser!
 
 		// COMBINE VIEWPOINT * PROJECTION
 		var tVP_PROJ = mat4.create();
@@ -278,7 +335,6 @@ function setup() {
 
 		// Draw
 		DrawSphere();
-
 		
 
 		// draws runway
@@ -288,9 +344,12 @@ function setup() {
 
 		var tVP_PROJ_CAM4 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM4,tVP_PROJ, TlookAt);
-		DrawVerticalPillar("black", tVP_PROJ_CAM4);
+		//DrawVerticalPillar("black", tVP_PROJ_CAM4);
+		DrawAllVerticalPillars(tVP_PROJ_CAM4);
 
 	}
+
+	
 
 	// animators
 	function sphereAnimator(){
@@ -299,8 +358,14 @@ function setup() {
 	}
 
 	function pillarAnimator(){
-		currentPillarPosition = Math.floor(Math.random() * (numberOfPillarPositions - 0) + 0);
-		console.log(currentPillarPosition);
+		//posXPillar = Math.floor(Math.random() * (numberOfPillarPositions - 0) + 0);
+		//posZPillar -= 3;
+
+		for(let i=0; i< pillarQueue.length; i++){
+
+			var p = pillarQueue[i];
+			p.posZ -= displacementZPillar;
+		}
 
 		draw();
 	}
@@ -372,6 +437,7 @@ function setup() {
 
 	sphereAnimatorTracker = setInterval(sphereAnimator, speedOfSphereRender);
 	pillarAnimatorTracker = setInterval(pillarAnimator, speedOfPillarRender);
+	pillarGeneratorTracker = setInterval(pillarGenerator, speedOfPillarGenerator);
 	
 
     draw();
