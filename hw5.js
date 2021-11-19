@@ -27,15 +27,16 @@ function setup() {
 	var speedOfDegRotationLR = 10;
 
 	var degOfForwardRotation = 10;
-
-	
-
 	var sphereAnimatorTracker = null;
 	var speedOfSphereRender = 30;
 
 	// Pillar variables
 	var pillarAnimatorTracker = null;
-	var speedOfPillarRender = 40;
+	var speedOfPillarRender = 1000;
+
+	var numberOfPillarPositions = 5;
+	var currentPillarPosition = 0;
+	var arrayOfPillarXDisplacements = [0, 1, -1, 5, -5];
 
 	// runway variables
 	var widthOfRunWay = 27;
@@ -129,6 +130,10 @@ function setup() {
 			context.beginPath();
 	    	context.strokeStyle = color;
 
+			var positionOfPillar = mat4.create();
+			mat4.fromTranslation(positionOfPillar, [arrayOfPillarXDisplacements[currentPillarPosition], 0, 0]);
+			mat4.multiply(Tx, Tx, positionOfPillar);
+
 			// bottom view
 			//x, z
 			moveToTx([-5, -10, -5], Tx);
@@ -162,9 +167,6 @@ function setup() {
 
 			moveToTx([-5,-10,5], Tx);
 			lineToTx([-5,5,5], Tx);
-
-
-
 
 			context.stroke();
 		}
@@ -230,9 +232,6 @@ function setup() {
 			// mat4.multiply(tVP_PROJ_CAM,tVP_PROJ,TlookAt);
 			// drawTrajectory(0.0, 2.0, 100, CircleY, tVP_PROJ_CAM, "green");
 
-
-			// ROTATION HERE REVERSES DOES NOT GO FORWARD WHYYYYY!!???
-			//if(degOfForwardRotation >= 360){degOfForwardRotation = 0;}
 			if(degOfForwardRotation <=-360){
 				degOfForwardRotation = 0;
 			}
@@ -300,7 +299,10 @@ function setup() {
 	}
 
 	function pillarAnimator(){
+		currentPillarPosition = Math.floor(Math.random() * (numberOfPillarPositions - 0) + 0);
+		console.log(currentPillarPosition);
 
+		draw();
 	}
     
     
@@ -369,7 +371,7 @@ function setup() {
     sliderY.addEventListener("input",draw);
 
 	sphereAnimatorTracker = setInterval(sphereAnimator, speedOfSphereRender);
-	//pillarAnimatorTracker = setInterval(pillarAnimator, speedOfPillarRender);
+	pillarAnimatorTracker = setInterval(pillarAnimator, speedOfPillarRender);
 	
 
     draw();
