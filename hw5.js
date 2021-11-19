@@ -33,8 +33,8 @@ function setup() {
 	// Pillar variables
 	var pillarAnimatorTracker = null;
 	var pillarGeneratorTracker = null;
-	var speedOfPillarRender = 200;
-	var speedOfPillarGenerator = 3000;
+	var speedOfPillarRender = 100;
+	var speedOfPillarGenerator = 1000;
 
 	var posXPillar = 0;
 	var arrayOfPillarXDisplacements = [0, 10, -10, 20, -30];
@@ -43,9 +43,9 @@ function setup() {
 	var posZPillar = 250;
 	var displacementZPillar = 10;
 
-	
+	var numberOfBlocks = 100;
 
-	var pillarQueue = [];
+
 
 	class Pillar{
 		constructor(x, y, z, color, generateStatus){
@@ -57,6 +57,7 @@ function setup() {
 		}
 	}
 
+	var pillarQueue = [];
 
 
 	// runway variables
@@ -73,13 +74,13 @@ function setup() {
 
 		posZPillar = Math.floor(Math.random() * (arrayOfPillarZDisplacements,length - 0) + 0);
 
-		var newPillar = new Pillar(arrayOfPillarXDisplacements[posXPillar], 0, arrayOfPillarZDisplacements[posZPillar], "black", false);
-
+		var newPillar = new Pillar(arrayOfPillarXDisplacements[posXPillar], 0, arrayOfPillarZDisplacements[posZPillar], "black", true);
 		pillarQueue.push(newPillar);
-
+		
 
 	}
 
+	pillarGenerator();
 	
 	// This function draws onto canvas
     function draw() {
@@ -170,59 +171,72 @@ function setup() {
 			context.beginPath();
 	    	context.strokeStyle = color;
 
+			var tempTx = Tx;
+
 			posZPillar -= displacementZPillar;
 
 			var positionOfPillar = mat4.create();
 			//mat4.fromTranslation(positionOfPillar, [arrayOfPillarXDisplacements[posXPillar], 0, posZPillar]);
 			mat4.fromTranslation(positionOfPillar, [posX, posY, posZ]);
-			mat4.multiply(Tx, Tx, positionOfPillar);
+			mat4.multiply(tempTx, Tx, positionOfPillar);
 
 			// bottom view
 			//x, z
-			moveToTx([-5, -10, -5], Tx);
-			lineToTx([5, -10, -5], Tx);
-			moveToTx([5,-10,-5], Tx);
-			lineToTx([5,-10,5], Tx);
-			moveToTx([5,-10,5], Tx);
-			lineToTx([-5,-10,5], Tx);
-			moveToTx([-5,-10,5], Tx);
-			lineToTx([-5,-10,-5], Tx);
+			moveToTx([-5, -10, -5], tempTx);
+			lineToTx([5, -10, -5], tempTx);
+			moveToTx([5,-10,-5], tempTx);
+			lineToTx([5,-10,5], tempTx);
+			moveToTx([5,-10,5], tempTx);
+			lineToTx([-5,-10,5], tempTx);
+			moveToTx([-5,-10,5], tempTx);
+			lineToTx([-5,-10,-5], tempTx);
 
 			// top view
-			moveToTx([-5, 5, -5], Tx);
-			lineToTx([5, 5, -5], Tx);
-			moveToTx([5,5,-5], Tx);
-			lineToTx([5,5,5], Tx);
-			moveToTx([5,5,5], Tx);
-			lineToTx([-5,5,5], Tx);
-			moveToTx([-5,5,5], Tx);
-			lineToTx([-5,5,-5], Tx);
+			moveToTx([-5, 5, -5], tempTx);
+			lineToTx([5, 5, -5], tempTx);
+			moveToTx([5,5,-5], tempTx);
+			lineToTx([5,5,5], tempTx);
+			moveToTx([5,5,5], tempTx);
+			lineToTx([-5,5,5], tempTx);
+			moveToTx([-5,5,5], tempTx);
+			lineToTx([-5,5,-5], tempTx);
 
 			// 4 side lines
-			moveToTx([-5, -10, -5], Tx);
-			lineToTx([-5, 5, -5], Tx)
+			moveToTx([-5, -10, -5], tempTx);
+			lineToTx([-5, 5, -5], tempTx)
 
-			moveToTx([5,-10,-5], Tx);
-			lineToTx([5,5,-5], Tx);
+			moveToTx([5,-10,-5], tempTx);
+			lineToTx([5,5,-5], tempTx);
 
-			moveToTx([5,-10,5], Tx);
-			lineToTx([5,5,5], Tx);
+			moveToTx([5,-10,5], tempTx);
+			lineToTx([5,5,5], tempTx);
 
-			moveToTx([-5,-10,5], Tx);
-			lineToTx([-5,5,5], Tx);
+			moveToTx([-5,-10,5], tempTx);
+			lineToTx([-5,5,5], tempTx);
 
 			context.stroke();
 		}
 
 		function DrawAllVerticalPillars(Tx){
 			
+
 			for(let i = 0; i< pillarQueue.length; i++){
 				var p = pillarQueue[i];
-				if(p.posZ <= -40){
-					pillarQueue.shift();
-				}else{
-					DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
-				}
+				// if(p.posZ <= -40){
+				// 	pillarQueue.shift();
+				// 	//DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
+				// }else{
+				// 	DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
+				// }
+				
+				DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
+				
+				
+					
+				
+
+				
+				
 
 			}
 
@@ -353,19 +367,24 @@ function setup() {
 
 	// animators
 	function sphereAnimator(){
-
 		draw();
 	}
 
 	function pillarAnimator(){
 		//posXPillar = Math.floor(Math.random() * (numberOfPillarPositions - 0) + 0);
 		//posZPillar -= 3;
-
+		
 		for(let i=0; i< pillarQueue.length; i++){
 
 			var p = pillarQueue[i];
 			p.posZ -= displacementZPillar;
+
+			if(p.posZ <= -40){
+				pillarQueue.shift();
+			}
 		}
+
+		
 
 		draw();
 	}
