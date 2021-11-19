@@ -6,9 +6,9 @@ function setup() {
 
 	// Slider variables
     var sliderX = document.getElementById('sliderX');
-    sliderX.value = 0;
+    sliderX.value = 50;
     var sliderY = document.getElementById('sliderY');
-    sliderY.value = 0;
+    sliderY.value = 50;
 
 	// Keyboard variables
 	var keyW = false;
@@ -16,7 +16,7 @@ function setup() {
 	var keyS = false;
 	var keyD = false;
 	var displacementLR = 0;
-	var speedOfDisplacementLR = 3;
+	var speedOfDisplacementLR = -3;
 
 
 	// Sphere variables
@@ -32,6 +32,10 @@ function setup() {
 
 	var sphereAnimatorTracker = null;
 	var speedOfSphereRender = 30;
+
+	// Pillar variables
+	var pillarAnimatorTracker = null;
+	var speedOfPillarRender = 40;
 
 	// runway variables
 	var widthOfRunWay = 27;
@@ -118,6 +122,50 @@ function setup() {
 				var t=((intervals-i)/intervals)*t_begin+(i/intervals)*t_end;
 				lineToTx(C(t),Tx);
 			}
+			context.stroke();
+		}
+
+		function DrawVerticalPillar(color, Tx){
+			context.beginPath();
+	    	context.strokeStyle = color;
+
+			// bottom view
+			//x, z
+			moveToTx([-5, -10, -5], Tx);
+			lineToTx([5, -10, -5], Tx);
+			moveToTx([5,-10,-5], Tx);
+			lineToTx([5,-10,5], Tx);
+			moveToTx([5,-10,5], Tx);
+			lineToTx([-5,-10,5], Tx);
+			moveToTx([-5,-10,5], Tx);
+			lineToTx([-5,-10,-5], Tx);
+
+			// top view
+			moveToTx([-5, 5, -5], Tx);
+			lineToTx([5, 5, -5], Tx);
+			moveToTx([5,5,-5], Tx);
+			lineToTx([5,5,5], Tx);
+			moveToTx([5,5,5], Tx);
+			lineToTx([-5,5,5], Tx);
+			moveToTx([-5,5,5], Tx);
+			lineToTx([-5,5,-5], Tx);
+
+			// 4 side lines
+			moveToTx([-5, -10, -5], Tx);
+			lineToTx([-5, 5, -5], Tx)
+
+			moveToTx([5,-10,-5], Tx);
+			lineToTx([5,5,-5], Tx);
+
+			moveToTx([5,-10,5], Tx);
+			lineToTx([5,5,5], Tx);
+
+			moveToTx([-5,-10,5], Tx);
+			lineToTx([-5,5,5], Tx);
+
+
+
+
 			context.stroke();
 		}
 
@@ -232,10 +280,16 @@ function setup() {
 		// Draw
 		DrawSphere();
 
+		
+
 		// draws runway
 		var tVP_PROJ_CAM3 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM3,tVP_PROJ, TlookAt);
 		drawRunway("red", tVP_PROJ_CAM3);
+
+		var tVP_PROJ_CAM4 = mat4.create();
+		mat4.multiply(tVP_PROJ_CAM4,tVP_PROJ, TlookAt);
+		DrawVerticalPillar("black", tVP_PROJ_CAM4);
 
 	}
 
@@ -243,6 +297,10 @@ function setup() {
 	function sphereAnimator(){
 
 		draw();
+	}
+
+	function pillarAnimator(){
+
 	}
     
     
@@ -311,6 +369,7 @@ function setup() {
     sliderY.addEventListener("input",draw);
 
 	sphereAnimatorTracker = setInterval(sphereAnimator, speedOfSphereRender);
+	//pillarAnimatorTracker = setInterval(pillarAnimator, speedOfPillarRender);
 	
 
     draw();
