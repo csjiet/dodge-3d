@@ -185,6 +185,9 @@ function setup() {
 
 			// ROTATION HERE REVERSES DOES NOT GO FORWARD WHYYYYY!!???
 			//if(degOfForwardRotation >= 360){degOfForwardRotation = 0;}
+			if(degOfForwardRotation <=-360){
+				degOfForwardRotation = 0;
+			}
 			mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
 
 
