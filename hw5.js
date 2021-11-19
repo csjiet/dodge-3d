@@ -21,17 +21,17 @@ function setup() {
 
 	// Sphere variables
 	var ballRotationTransform = mat4.create();
-	var diameterOfSphere = 7.0;
+	var diameterOfSphere = 8.0;
+	var degIntervals = 30;
 	var degD = 0;
 	var speedOfDegRotationLR = 10;
 
-	var degOfForwardRotation = 0;
-	var speedOfForwardRotation = 15;
+	var degOfForwardRotation = 10;
 
 	
 
 	var sphereAnimatorTracker = null;
-	var speedOfSphereRender = 1000;
+	var speedOfSphereRender = 30;
 
 	// runway variables
 	var widthOfRunWay = 27;
@@ -175,7 +175,7 @@ function setup() {
 		// Functions
 		// Draw definitions
 
-		function DrawSphere(degIntervals){
+		function DrawSphere(){
 			// Create transform t_VP_CAM that incorporates
 			// Viewport and Camera transformations
 			// var tVP_PROJ_CAM = mat4.create();
@@ -185,7 +185,7 @@ function setup() {
 
 			// ROTATION HERE REVERSES DOES NOT GO FORWARD WHYYYYY!!???
 			//if(degOfForwardRotation >= 360){degOfForwardRotation = 0;}
-			//mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
+			mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
 
 
 			// Rotate along X axis
@@ -227,7 +227,7 @@ function setup() {
 		}
 
 		// Draw
-		DrawSphere(180);
+		DrawSphere();
 
 		// draws runway
 		var tVP_PROJ_CAM3 = mat4.create();
@@ -238,9 +238,8 @@ function setup() {
 
 	// animators
 	function sphereAnimator(){
-		degOfForwardRotation += speedOfForwardRotation;
-		draw();
 
+		draw();
 	}
     
     
