@@ -188,7 +188,7 @@ function setup() {
 			if(degD >=360){degD = 0;}
 
 			
-			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
+			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); 
 
 
 			context.save();
@@ -400,8 +400,10 @@ function setup() {
 			if(degOfForwardRotation <=-360){
 				degOfForwardRotation = 0;
 			}
-			mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
-
+			
+			if(gameStart == true){
+				mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
+			}
 
 			// Rotate along X axis
 			var deg = 0;
