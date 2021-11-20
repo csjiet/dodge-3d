@@ -57,6 +57,13 @@ function setup() {
 		}
 	}
 
+	var x1 = 0;
+	var y1 = 0;
+	var x2 = 0;
+	var y2 = 0;
+	var x3 = 0;
+	var y3 = 0;
+
 	// Functions
 	// PillarGenerator
 	function pillarGenerator(){
@@ -64,7 +71,7 @@ function setup() {
 		var spawnPosX = Math.floor(Math.random() * (30 - (-30)) + (-30));
 		let p = new Pillar(spawnPosX, 0, 250, "black", false);
 		pillarQueue.push(p);
-
+		
 	}
 
 	
@@ -133,8 +140,6 @@ function setup() {
 					// }
 				}
 			}
-
-			console.log(lives);
 		}
 
 
@@ -192,6 +197,38 @@ function setup() {
 
 		// Functions
 		// Draw definitions
+		function DrawArrow(color, Tx){
+			context.beginPath();
+	    	context.fillStyle = color;
+
+			let t = Tx;
+			let arrowPoint = -5;
+			let rangeToTheCamera = -20;
+			let arrowWing = 5;
+			let lengthOfArrow = 5;
+			let arrowDiptoBody = 3;
+			moveToTx([arrowPoint, 0, rangeToTheCamera], t);
+			lineToTx([0, arrowWing, rangeToTheCamera], t);
+			moveToTx([0, arrowWing, rangeToTheCamera], t);
+			lineToTx([0, arrowWing - arrowDiptoBody, rangeToTheCamera], t);
+			moveToTx([0, arrowWing - arrowDiptoBody, rangeToTheCamera], t);
+			lineToTx([0 + lengthOfArrow, arrowWing - arrowDiptoBody, rangeToTheCamera], t);
+			moveToTx([0 + lengthOfArrow, arrowWing - arrowDiptoBody, rangeToTheCamera], t);
+			lineToTx([0 + lengthOfArrow, 0, rangeToTheCamera], t);
+
+			moveToTx([arrowPoint, 0, rangeToTheCamera], t);
+			lineToTx([0, -arrowWing, rangeToTheCamera], t);
+			moveToTx([0, -arrowWing, rangeToTheCamera], t);
+			lineToTx([0, -arrowWing + arrowDiptoBody, rangeToTheCamera], t);
+			moveToTx([0, -arrowWing + arrowDiptoBody, rangeToTheCamera], t);
+			lineToTx([0 + lengthOfArrow, -arrowWing + arrowDiptoBody, rangeToTheCamera], t);
+			moveToTx([0 + lengthOfArrow, -arrowWing + arrowDiptoBody, rangeToTheCamera], t);
+			lineToTx([0 + lengthOfArrow, 0, rangeToTheCamera], t);
+
+			context.closePath();
+			context.stroke();
+			context.fill();
+		}
 
 		function drawRunway(color, Tx){
 			context.beginPath();
@@ -221,11 +258,39 @@ function setup() {
 
 			
 			// Border lines
-			moveToTx([widthOfRunWay, elevation, 30], Tx);
-			lineToTx([-widthOfRunWay, elevation, 30], Tx)
+			moveToTx([widthOfRunWay, elevation, 300], Tx);
+			lineToTx([-widthOfRunWay, elevation, 300], Tx)
 
 			moveToTx([widthOfRunWay, elevation, -30], Tx);
 			lineToTx([-widthOfRunWay, elevation, -30], Tx)
+
+			// end pillar
+			moveToTx([widthOfRunWay, elevation, 300], Tx);
+			lineToTx([widthOfRunWay, elevation + 1000, 300], Tx)
+
+			moveToTx([-widthOfRunWay, elevation, 300], Tx);
+			lineToTx([-widthOfRunWay, elevation + 1000, 300], Tx)
+
+			// Runway to the end
+			// moveToTx([widthOfRunWay, elevation, 30], Tx);
+			// lineToTx([widthOfRunWay, elevation, 50], Tx);
+			var endZDistance = 300;
+			var currentZDistance = 30;
+			for(let i = 0; currentZDistance <= endZDistance; i++){
+				moveToTx([widthOfRunWay, elevation, currentZDistance], Tx);
+				currentZDistance += 20;
+				lineToTx([widthOfRunWay, elevation, currentZDistance], Tx)
+			}
+
+			var endZDistance = 300;
+			var currentZDistance = 30;
+			for(let i = 0; currentZDistance <= endZDistance; i++){
+				moveToTx([-widthOfRunWay, elevation, currentZDistance], Tx);
+				currentZDistance += 20;
+				lineToTx([-widthOfRunWay, elevation, currentZDistance], Tx)
+			}
+			
+			
 
 			context.stroke();
 		}
@@ -283,14 +348,16 @@ function setup() {
 			let tVP_PROJ_CAM4 = mat4.create();
 			mat4.multiply(tVP_PROJ_CAM4, tVP_PROJ, TlookAt);
 
+
 			for(let i=0; i< pillarQueue.length; i++){
 				let p = pillarQueue[i];
 				p.posZ -= displacementOfPillar;
 				
-				if(p.posZ <= -20){
+				if(p.posZ <= -15){
 					pillarQueue.shift();
+				}else{
+					DrawVerticalPillar("black", tVP_PROJ_CAM4, p.posX, p.posY, p.posZ);
 				}
-				DrawVerticalPillar("black", tVP_PROJ_CAM4, p.posX, p.posY, p.posZ);
 				
 			}
 
@@ -359,6 +426,25 @@ function setup() {
 		mat4.multiply(tVP_PROJ_CAM4, tVP_PROJ, TlookAt);
 		DrawVerticalPillar("black", tVP_PROJ_CAM4, 0, 0, 250);
 		DrawAllVerticalPillars();
+
+		var tVP_PROJ_CAM5 = mat4.create();
+		var arrowTranslationToLeft = mat4.create();
+		mat4.fromTranslation(arrowTranslationToLeft, [-10, -5, 0]);
+		mat4.multiply(tVP_PROJ_CAM5, tVP_PROJ, TlookAt);
+		mat4.multiply(tVP_PROJ_CAM5, tVP_PROJ_CAM5, arrowTranslationToLeft);
+		
+		DrawArrow("red", tVP_PROJ_CAM5);
+
+
+		// TERBALIKKAN!!!!!!!!! ARROW
+		var tVP_PROJ_CAM6 = mat4.create();
+		var arrowTranslationToLeft = mat4.create();
+		mat4.scale(arrowTranslationToLeft, arrowTranslationToLeft, [-100, -100,0]);
+		mat4.fromTranslation(arrowTranslationToLeft, [-10, -5, 0]);
+		mat4.multiply(tVP_PROJ_CAM6, tVP_PROJ, TlookAt);
+		mat4.multiply(tVP_PROJ_CAM6, tVP_PROJ_CAM6, arrowTranslationToLeft);
+		
+		DrawArrow("red", tVP_PROJ_CAM6);
 
 		collisionDetection();
 
