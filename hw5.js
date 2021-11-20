@@ -5,14 +5,19 @@ function setup() {
     var context = canvas.getContext('2d');
 
 	// Slider variables
-    //var sliderX = document.getElementById('sliderX');
-    //sliderX.value = 50;
     var sliderY = document.getElementById('sliderY');
     sliderY.value = 50;
 
+	// Button variables
 	var recenterButton = document.getElementById('recenterButton');
 
+	// Game state variables
 	var gameStart = false;
+	var travelledDistance = 0.0;
+	var playerMaxLives = 50;
+	var playerLives = playerMaxLives;
+	var playLifeDeduction = 1;
+	var gameOver = false;
 
 	// Keyboard variables
 	var keyW = false;
@@ -46,9 +51,8 @@ function setup() {
 	// runway variables
 	var widthOfRunWay = 27;
 
-	// score variables
-	var lives = 5;
 
+	// Pillar class
 	class Pillar{
 		constructor(posX, posY, posZ, color, generateStatus){
 			this.posX = posX;
@@ -59,19 +63,15 @@ function setup() {
 		}
 	}
 
-	var x1 = 0;
-	var y1 = 0;
-	var x2 = 0;
-	var y2 = 0;
-	var x3 = 0;
-	var y3 = 0;
-
 	// Functions
-	// PillarGenerator
+
+	// This function generates pillars at a random position
 	function pillarGenerator(){
 		
 		var spawnPosX = Math.floor(Math.random() * (30 - (-30)) + (-30));
 		let p = new Pillar(spawnPosX, 0, 250, "black", false);
+
+		// Adds newly added pillar to the queue
 		pillarQueue.push(p);
 		
 	}
@@ -81,9 +81,15 @@ function setup() {
 
 	// This function draws onto canvas
     function draw() {
+
+		// Checks if game is over
+		if(gameOver == true){
+			return;
+		}
+
 		canvas.width = canvas.width;
 
-		// use the sliders to get the angles
+		// View angle
 		var viewAngle = sliderY.value*0.02*Math.PI;
 
 		// Draw stroke functions
@@ -94,6 +100,8 @@ function setup() {
 		{var res=vec3.create(); vec3.transformMat4(res,loc,Tx); context.lineTo(res[0],res[1]);}
 
 		
+		// Curve functions
+		// This function draws a circle on the Y plane
 		function CircleY(t){
 			//var result = [10.0*Math.cos(2.0*Math.PI*t),8.0*t,10.0*Math.sin(2.0*Math.PI*t)];
 			var result = [diameterOfSphere*Math.cos(2.0*Math.PI*t),0,diameterOfSphere*Math.sin(2.0*Math.PI*t)];
@@ -103,19 +111,21 @@ function setup() {
 			return result;
 		}
 
+		// This function draws a circle on the X plane
 		function CircleX(t){
 			//var result = [10.0*Math.cos(2.0*Math.PI*t),8.0*t,10.0*Math.sin(2.0*Math.PI*t)];
 			var result = [0, diameterOfSphere*Math.cos(2.0*Math.PI*t),diameterOfSphere*Math.sin(2.0*Math.PI*t)];
 			return result;
 		}
 
+		// This function draws a circle on the Z plane
 		function CircleZ(t){
 			//var result = [10.0*Math.cos(2.0*Math.PI*t),8.0*t,10.0*Math.sin(2.0*Math.PI*t)];
 			var result = [diameterOfSphere*Math.cos(2.0*Math.PI*t),diameterOfSphere*Math.sin(2.0*Math.PI*t,0)];
 			return result;
 		}
 
-
+		// This function sets the intervals between the define curve
 		function drawTrajectory(t_begin,t_end,intervals,C,Tx,color) {
 			context.strokeStyle=color;
 			context.beginPath();
@@ -127,39 +137,40 @@ function setup() {
 			context.stroke();
 		}
 
+		// This function detects if the sphere has collided with the obstacle
 		function collisionDetection(){
 
+			// Iterates through all pillar objects in the queue
 			for(let i = 0; i< pillarQueue.length; i++){
+
+				// Checks if the position of pillar coincides with position of the obstacle
 				if(pillarQueue[i].posX - 5 <= displacementLR + 8 && (pillarQueue[i].posX + 5 >= displacementLR - 8)|| pillarQueue[i].posX + 5 >= displacementLR - 8 && (pillarQueue[i].posX - 5 <= displacementLR + 8)){
 					if(pillarQueue[i].posZ - 5 <= 0 + 8 && (pillarQueue[i].posZ + 5 >= 0 - 8)|| pillarQueue[i].posZ + 5 >= 0 - 8 && (pillarQueue[i].posZ - 5 <= 0 + 8)){
+
+						// Draws the life deduction text
 						context.font = "60px Arial";
 						context.fillStyle = "red";
 						context.textAlign = "center";
 						context.fillText("-1", 40, 50);
+						playerLives -= playLifeDeduction;
+
+
 					}
-					// if(pillarQueue[i].posZ <= 0 + 8 && (pillarQueue[i].posZ >= 0 - 8)|| pillarQueue[i].posZ >= 0 - 8 && (pillarQueue[i].posZ <= 0 + 8)){
-					// 	lives = lives - 1;
-					// }
 				}
 			}
 		}
 
 
 
-		// Create ViewPort transform
+		// Creates ViewPort transform
 		var Tviewport = mat4.create();
-		mat4.fromTranslation(Tviewport,[270,300,0]);  // Move the center of the
-													// "lookAt" transform (where
-													// the camera points) to the
-													// canvas coordinates (200,300)
-		mat4.scale(Tviewport,Tviewport,[100,-100,1]); // Flip the Y-axis,
-													// scale everything by 100x
+		mat4.fromTranslation(Tviewport,[270,300,0]);  					
+		mat4.scale(Tviewport,Tviewport,[100,-100,1]); 
 
-		// Create projection transform
-		// (orthographic for now)
+		// Creates projection transform
 		var Tprojection = mat4.create();
 		//mat4.ortho(Tprojection,-10,10,-10,10,-1,1);
-		mat4.perspective(Tprojection,Math.PI/5,1,-40,1000); // Use for perspective teaser!
+		mat4.perspective(Tprojection,Math.PI/5,1,-40,1000); 
 
 		// COMBINE VIEWPOINT * PROJECTION
 		var tVP_PROJ = mat4.create();
@@ -172,22 +183,20 @@ function setup() {
 		locCamera[1] = 10;
 		locCamera[2] = distCamera*Math.cos(viewAngle);
 
-
-
-		var locTarget = vec3.fromValues(0, 0, 0); // Aim at the origin of the world coords
+		// Defines variables of the camera
+		var locTarget = vec3.fromValues(0, 0, 0); 
 		var vecUp = vec3.fromValues(0,1,0);
 		var TlookAt = mat4.create();
 		mat4.lookAt(TlookAt, locCamera, locTarget, vecUp);
 		
-		// Controls
+		// Checks for interacted keyboard controls
+		// Checks if the D key is pressed
 		if(keyD == true){
 			gameStart = true;
 			degD += speedOfDegRotationLR;
 			displacementLR += speedOfDisplacementLR;
 			
 			if(degD >=360){degD = 0;}
-
-			
 			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); 
 
 
@@ -198,16 +207,17 @@ function setup() {
 			context.textAlign = "center";
 			context.fillText(">>>", 40, 50);
 			context.restore();
-			
 			//mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
 			
+			// Checks if the A key is pressed
 		}else if(keyA == true){
+			
+
 			gameStart = true;
 			degD += speedOfDegRotationLR;
 			displacementLR -= speedOfDisplacementLR;
 		
 			if(degD >=360){degD = 0;}
-
 			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]);
 
 			context.save();
@@ -222,8 +232,8 @@ function setup() {
 		}
 
 
-		// Functions
-		// Draw definitions
+		// Draw functions
+		// This function draws the arrow
 		function DrawArrow(color, Tx){
 			context.beginPath();
 	    	context.fillStyle = color;
@@ -257,13 +267,12 @@ function setup() {
 			context.stroke();
 		}
 
-		function drawRunway(color, Tx){
+		// This function draws the runway
+		function DrawRunway(color, Tx){
 			context.beginPath();
 	    	context.strokeStyle = color;
 
-			var elevation = -5;
-
-			// drawn on x, z plane
+			var elevation = -5; // elevation of runway 
 
 			// Runway in front of the ball
 			// Right edge
@@ -299,8 +308,6 @@ function setup() {
 			lineToTx([-widthOfRunWay, elevation + 1000, 300], Tx)
 
 			// Runway to the end
-			// moveToTx([widthOfRunWay, elevation, 30], Tx);
-			// lineToTx([widthOfRunWay, elevation, 50], Tx);
 			var endZDistance = 300;
 			var currentZDistance = 30;
 			for(let i = 0; currentZDistance <= endZDistance; i++){
@@ -318,10 +325,10 @@ function setup() {
 			}
 			
 			
-
 			context.stroke();
 		}
 
+		// This function draws the pillar (obstacle)
 		function DrawVerticalPillar(color, Tx, posX, posY, posZ){
 			context.beginPath();
 	    	context.strokeStyle = color;
@@ -329,11 +336,10 @@ function setup() {
 			let tempTx = mat4.clone(Tx);
 
 			let positionOfPillar = mat4.create();
-			//mat4.fromTranslation(positionOfPillar, [arrayOfPillarXDisplacements[posXPillar], 0, posZPillar]);
 			mat4.fromTranslation(positionOfPillar, [posX, posY, posZ]);
 			mat4.multiply(tempTx, Tx, positionOfPillar);
 
-			// bottom view
+			// Bottom view
 			//x, z
 			moveToTx([-5, -10, -5], tempTx);
 			lineToTx([5, -10, -5], tempTx);
@@ -344,7 +350,7 @@ function setup() {
 			moveToTx([-5,-10,5], tempTx);
 			lineToTx([-5,-10,-5], tempTx);
 
-			// top view
+			// Top view
 			moveToTx([-5, 5, -5], tempTx);
 			lineToTx([5, 5, -5], tempTx);
 			moveToTx([5,5,-5], tempTx);
@@ -354,7 +360,7 @@ function setup() {
 			moveToTx([-5,5,5], tempTx);
 			lineToTx([-5,5,-5], tempTx);
 
-			// 4 side lines
+			// Four side lines
 			moveToTx([-5, -10, -5], tempTx);
 			lineToTx([-5, 5, -5], tempTx)
 
@@ -371,6 +377,7 @@ function setup() {
 
 		}
 
+		// This function draws all the vertical pillars in the queue
 		function DrawAllVerticalPillars(){
 			let tVP_PROJ_CAM4 = mat4.create();
 			mat4.multiply(tVP_PROJ_CAM4, tVP_PROJ, TlookAt);
@@ -390,21 +397,19 @@ function setup() {
 
 		}
 
+		// This function draws the sphere
 		function DrawSphere(){
-			// Create transform t_VP_CAM that incorporates
-			// Viewport and Camera transformations
-			// var tVP_PROJ_CAM = mat4.create();
-			// mat4.multiply(tVP_PROJ_CAM,tVP_PROJ,TlookAt);
-			// drawTrajectory(0.0, 2.0, 100, CircleY, tVP_PROJ_CAM, "green");
 
+			// Checks if sphere is done one complete rotation
 			if(degOfForwardRotation <=-360){
 				degOfForwardRotation = 0;
 			}
 			
-			if(gameStart == true){
-				mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
-			}
+			// Rotate the ball to mimic moving motion
+			mat4.rotate(ballRotationTransform, ballRotationTransform, (degOfForwardRotation)*Math.PI/180, [1,0,0]);
+			
 
+			// Draw the sphere
 			// Rotate along X axis
 			var deg = 0;
 			while(deg <= 360){
@@ -443,33 +448,86 @@ function setup() {
 
 		}
 
+		// This function draws the loading screen
 		function DrawLoadingScreen(){
 			context.save();
 			context.translate(240, 150);
 			context.font = "40px Arial";
+			context.fillStyle = "black";
+			context.textAlign = "center";
+			context.fillText("Press control buttons to start", 40, 50);
+			context.restore();
+
+			context.save();
+			context.translate(350, 400-7);
+			context.font = "40px Arial";
 			context.fillStyle = "red";
 			context.textAlign = "center";
-			context.fillText("Press any button to start", 40, 50);
+			context.fillText("D", 40, 50);
+			context.restore();
+
+			context.save();
+			context.translate(99, 400-7);
+			context.font = "40px Arial";
+			context.fillStyle = "red";
+			context.textAlign = "center";
+			context.fillText("A", 40, 50);
 			context.restore();
 		}
 
-		//Draw
+		// This function draws the distance travelled by the ball
+		function DrawDistanceTracker(){
+			context.save();
+			context.translate(240, 50);
+			context.font = "40px Arial";
+			context.fillStyle = "blue";
+			context.textAlign = "center";
+			context.fillText(travelledDistance, 40, 50);
+			context.restore();
+		}
+
+		// This function draws the life bar of the player 
+		function DrawLives(){
+			context.beginPath();
+			context.fillStyle = "rgb(255, 0, 0, 0.5)";
+			context.fillRect(0, 0, Math.floor(canvas.width * (playerLives/ playerMaxLives)), 30);
+		}
+
+		// This function draws the game over text
+		function DrawGameOverText(){
+			context.save();
+			context.translate(235, 150);
+			context.font = "40px Arial";
+			context.fillStyle = "red";
+			context.textAlign = "center";
+			context.fillText("Game Over", 40, 50);
+			context.restore();
+		}
+
+
+		// Call draw functions
+		//Checks if the game has started
 		if(gameStart == false){
 			DrawLoadingScreen();
 		}
 
-		DrawSphere();
-		// draws runway
+		// Checks if the game has started
+		//if(gameStart == true){
+			DrawSphere();
+		//}
+
+		// Draws runway
 		var tVP_PROJ_CAM3 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM3,tVP_PROJ, TlookAt);
-		drawRunway("red", tVP_PROJ_CAM3);
+		DrawRunway("red", tVP_PROJ_CAM3);
 
+		// Draws pillars (obstacles)
 		var tVP_PROJ_CAM4 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM4, tVP_PROJ, TlookAt);
 		DrawVerticalPillar("black", tVP_PROJ_CAM4, 0, 0, 250);
 		DrawAllVerticalPillars();
 
-		
+		// Draws right arrow
 		var tVP_PROJ_CAM5 = mat4.create();
 		var arrowTranslationToLeft = mat4.create();
 		mat4.fromTranslation(arrowTranslationToLeft, [-10, -5, 0]);
@@ -477,7 +535,7 @@ function setup() {
 		mat4.multiply(tVP_PROJ_CAM5, tVP_PROJ_CAM5, arrowTranslationToLeft);
 		DrawArrow("red", tVP_PROJ_CAM5);
 	
-	
+		// Draws left arrow
 		var tVP_PROJ_CAM6 = mat4.create();
 		var arrowTranslationToLeft = mat4.create();
 		mat4.fromTranslation(arrowTranslationToLeft, [-10, -5, 0]);
@@ -488,25 +546,49 @@ function setup() {
 		mat4.multiply(tVP_PROJ_CAM6, tVP_PROJ_CAM6, flipTranslationToRight);
 		DrawArrow("red", tVP_PROJ_CAM6);
 		
-		collisionDetection();
+		// Checks if the game has started
+		if(gameStart == true){
+			// Check if sphere collides with the pillar (obstacle)
+			collisionDetection();
+
+			// Draws the distance travelled numerical text
+			DrawDistanceTracker();
+		}
+
+		// Draws life bar
+		DrawLives();
+
+		// Checks if the player has lives left
+		if(playerLives <= 0){
+			gameOver = true;
+			DrawGameOverText();
+
+			// Stop of animations
+			clearInterval(sphereAnimatorTracker);
+			clearInterval(pillarAnimatorTracker);
+			clearInterval(pillarGeneratorTracker);
+		}
 
 	}
 
 	
 
-	// animators
+	// Animators
+
+	// This function animates the sphere
 	function sphereAnimator(){
 		draw();
+		travelledDistance += 1; // Increment distance travelled as sphere complete revolution
 		
 	}
 
+	// This function animates the pillars
 	function pillarAnimator(){
 		draw();
 		
 	}
     
-    
-	//event listener
+	// This function checks if a key on the keyboard is pressed
 	function onKeyDown(event) {
 		var keyCode = event.keyCode;
 		switch (keyCode) {
@@ -531,10 +613,10 @@ function setup() {
 				break;
 		}
 
-		//console.log(keyD, keyS, keyA, keyW); // tester
 		draw();
 	}
 
+	// This function checks if a key on the keyboard is released
 	function onKeyUp(event) {
 		var keyCode = event.keyCode;
 
@@ -564,18 +646,19 @@ function setup() {
 	
 	}
 
+	// This function helps recenter the slider and the camera view
 	function recenterCamera(){
 		sliderY.value = 50;
 	}
 
+	// Event listeners
 	window.addEventListener("keydown", onKeyDown, false);
 	window.addEventListener("keyup", onKeyUp, false);
-
-	//sliderX.addEventListener("input",draw);
     sliderY.addEventListener("input",draw);
 
 	recenterButton.addEventListener("click", recenterCamera);
 
+	// Timed intervals
 	sphereAnimatorTracker = setInterval(sphereAnimator, speedOfSphereRender);
 	pillarAnimatorTracker = setInterval(pillarAnimator, speedOfPillarRender);
 	pillarGeneratorTracker = setInterval(pillarGenerator, speedOfPillarGenerator);
