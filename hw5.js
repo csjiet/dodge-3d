@@ -5,10 +5,12 @@ function setup() {
     var context = canvas.getContext('2d');
 
 	// Slider variables
-    var sliderX = document.getElementById('sliderX');
-    sliderX.value = 50;
+    //var sliderX = document.getElementById('sliderX');
+    //sliderX.value = 50;
     var sliderY = document.getElementById('sliderY');
     sliderY.value = 50;
+
+	var recenterButton = document.getElementById('recenterButton');
 
 	// Keyboard variables
 	var keyW = false;
@@ -33,55 +35,41 @@ function setup() {
 	// Pillar variables
 	var pillarAnimatorTracker = null;
 	var pillarGeneratorTracker = null;
-	var speedOfPillarRender = 100;
-	var speedOfPillarGenerator = 1000;
-
-	var posXPillar = 0;
-	var arrayOfPillarXDisplacements = [0, 10, -10, 20, -30];
-	var arrayOfPillarZDisplacements = [250, 280, 290, 330];
-
-	var posZPillar = 250;
-	var displacementZPillar = 10;
-
-	var numberOfBlocks = 100;
-
-
-
-	class Pillar{
-		constructor(x, y, z, color, generateStatus){
-			this.posX = x;
-			this.posY = y;
-			this.posZ = z;
-			this.color = color;
-			this.generateStatus = generateStatus;
-		}
-	}
-
+	var speedOfPillarRender = 3000;
+	var speedOfPillarGenerator = 3000;
+	var displacementOfPillar = 3;
 	var pillarQueue = [];
 
 
 	// runway variables
 	var widthOfRunWay = 27;
 
-	// Functions
+	// score variables
+	var lives = 5;
 
+	class Pillar{
+		constructor(posX, posY, posZ, color, generateStatus){
+			this.posX = posX;
+			this.posY = posY;
+			this.posZ = posZ;
+			this.color = color;
+			this.generateStatus = generateStatus;
+		}
+	}
+
+	// Functions
 	// PillarGenerator
 	function pillarGenerator(){
-		// function is called periodically
-
-		// add pillar object into queue
-		posXPillar = Math.floor(Math.random() * (arrayOfPillarXDisplacements.length - 0) + 0);
-
-		posZPillar = Math.floor(Math.random() * (arrayOfPillarZDisplacements,length - 0) + 0);
-
-		var newPillar = new Pillar(arrayOfPillarXDisplacements[posXPillar], 0, arrayOfPillarZDisplacements[posZPillar], "black", true);
-		pillarQueue.push(newPillar);
 		
+		var spawnPosX = Math.floor(Math.random() * (30 - (-30)) + (-30));
+		let p = new Pillar(spawnPosX, 0, 250, "black", false);
+		pillarQueue.push(p);
 
 	}
 
-	pillarGenerator();
 	
+
+
 	// This function draws onto canvas
     function draw() {
 		canvas.width = canvas.width;
@@ -117,6 +105,93 @@ function setup() {
 			var result = [diameterOfSphere*Math.cos(2.0*Math.PI*t),diameterOfSphere*Math.sin(2.0*Math.PI*t,0)];
 			return result;
 		}
+
+
+		function drawTrajectory(t_begin,t_end,intervals,C,Tx,color) {
+			context.strokeStyle=color;
+			context.beginPath();
+			moveToTx(C(t_begin),Tx);
+			for(var i=1;i<=intervals;i++){
+				var t=((intervals-i)/intervals)*t_begin+(i/intervals)*t_end;
+				lineToTx(C(t),Tx);
+			}
+			context.stroke();
+		}
+
+		function collisionDetection(){
+
+			for(let i = 0; i< pillarQueue.length; i++){
+				if(pillarQueue[i].posX - 5 <= displacementLR + 8 && (pillarQueue[i].posX + 5 >= displacementLR - 8)|| pillarQueue[i].posX + 5 >= displacementLR - 8 && (pillarQueue[i].posX - 5 <= displacementLR + 8)){
+					if(pillarQueue[i].posZ - 5 <= 0 + 8 && (pillarQueue[i].posZ + 5 >= 0 - 8)|| pillarQueue[i].posZ + 5 >= 0 - 8 && (pillarQueue[i].posZ - 5 <= 0 + 8)){
+						context.font = "60px Arial";
+						context.fillStyle = "red";
+						context.textAlign = "center";
+						context.fillText("-1", 40, 50);
+					}
+					// if(pillarQueue[i].posZ <= 0 + 8 && (pillarQueue[i].posZ >= 0 - 8)|| pillarQueue[i].posZ >= 0 - 8 && (pillarQueue[i].posZ <= 0 + 8)){
+					// 	lives = lives - 1;
+					// }
+				}
+			}
+
+			console.log(lives);
+		}
+
+
+
+		// Create ViewPort transform
+		var Tviewport = mat4.create();
+		mat4.fromTranslation(Tviewport,[270,300,0]);  // Move the center of the
+													// "lookAt" transform (where
+													// the camera points) to the
+													// canvas coordinates (200,300)
+		mat4.scale(Tviewport,Tviewport,[100,-100,1]); // Flip the Y-axis,
+													// scale everything by 100x
+
+		// Create projection transform
+		// (orthographic for now)
+		var Tprojection = mat4.create();
+		//mat4.ortho(Tprojection,-10,10,-10,10,-1,1);
+		mat4.perspective(Tprojection,Math.PI/5,1,-40,1000); // Use for perspective teaser!
+
+		// COMBINE VIEWPOINT * PROJECTION
+		var tVP_PROJ = mat4.create();
+		mat4.multiply(tVP_PROJ, Tviewport, Tprojection);
+
+		// Look at transform
+		var locCamera = vec3.create();
+		var distCamera = 40.0;
+		locCamera[0] = distCamera*Math.sin(viewAngle);
+		locCamera[1] = 10;
+		locCamera[2] = distCamera*Math.cos(viewAngle);
+
+
+
+		var locTarget = vec3.fromValues(0, 0, 0); // Aim at the origin of the world coords
+		var vecUp = vec3.fromValues(0,1,0);
+		var TlookAt = mat4.create();
+		mat4.lookAt(TlookAt, locCamera, locTarget, vecUp);
+		
+		// Controls
+		if(keyD == true){
+			degD += speedOfDegRotationLR;
+			displacementLR += speedOfDisplacementLR;
+			if(degD >=360){degD = 0;}
+
+			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
+			//mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
+			
+		}else if(keyA == true){
+			degD += speedOfDegRotationLR;
+			displacementLR -= speedOfDisplacementLR;
+			if(degD >=360){degD = 0;}
+			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]);
+			//mat4.rotate(ballRotationTransform, ballRotationTransform, (degD)*Math.PI/180, [0, 0, 1]);
+		}
+
+
+		// Functions
+		// Draw definitions
 
 		function drawRunway(color, Tx){
 			context.beginPath();
@@ -155,27 +230,13 @@ function setup() {
 			context.stroke();
 		}
 
-
-		function drawTrajectory(t_begin,t_end,intervals,C,Tx,color) {
-			context.strokeStyle=color;
-			context.beginPath();
-			moveToTx(C(t_begin),Tx);
-			for(var i=1;i<=intervals;i++){
-				var t=((intervals-i)/intervals)*t_begin+(i/intervals)*t_end;
-				lineToTx(C(t),Tx);
-			}
-			context.stroke();
-		}
-
 		function DrawVerticalPillar(color, Tx, posX, posY, posZ){
 			context.beginPath();
 	    	context.strokeStyle = color;
 
-			var tempTx = Tx;
+			let tempTx = Tx;
 
-			posZPillar -= displacementZPillar;
-
-			var positionOfPillar = mat4.create();
+			let positionOfPillar = mat4.create();
 			//mat4.fromTranslation(positionOfPillar, [arrayOfPillarXDisplacements[posXPillar], 0, posZPillar]);
 			mat4.fromTranslation(positionOfPillar, [posX, posY, posZ]);
 			mat4.multiply(tempTx, Tx, positionOfPillar);
@@ -215,86 +276,25 @@ function setup() {
 			lineToTx([-5,5,5], tempTx);
 
 			context.stroke();
+
 		}
 
-		function DrawAllVerticalPillars(Tx){
-			
+		function DrawAllVerticalPillars(){
+			let tVP_PROJ_CAM4 = mat4.create();
+			mat4.multiply(tVP_PROJ_CAM4, tVP_PROJ, TlookAt);
 
-			for(let i = 0; i< pillarQueue.length; i++){
-				var p = pillarQueue[i];
-				// if(p.posZ <= -40){
-				// 	pillarQueue.shift();
-				// 	//DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
-				// }else{
-				// 	DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
-				// }
+			for(let i=0; i< pillarQueue.length; i++){
+				let p = pillarQueue[i];
+				p.posZ -= displacementOfPillar;
 				
-				DrawVerticalPillar(p.color, Tx, p.posX, p.posY, p.posZ);
+				if(p.posZ <= -20){
+					pillarQueue.shift();
+				}
+				DrawVerticalPillar("black", tVP_PROJ_CAM4, p.posX, p.posY, p.posZ);
 				
-				
-					
-				
-
-				
-				
-
 			}
 
 		}
-
-
-
-
-		// Create ViewPort transform
-		var Tviewport = mat4.create();
-		mat4.fromTranslation(Tviewport,[270,300,0]);  // Move the center of the
-													// "lookAt" transform (where
-													// the camera points) to the
-													// canvas coordinates (200,300)
-		mat4.scale(Tviewport,Tviewport,[100,-100,1]); // Flip the Y-axis,
-													// scale everything by 100x
-
-		// Create projection transform
-		// (orthographic for now)
-		var Tprojection = mat4.create();
-		//mat4.ortho(Tprojection,-10,10,-10,10,-1,1);
-		mat4.perspective(Tprojection,Math.PI/5,1,-1000,1000); // Use for perspective teaser!
-
-		// COMBINE VIEWPOINT * PROJECTION
-		var tVP_PROJ = mat4.create();
-		mat4.multiply(tVP_PROJ, Tviewport, Tprojection);
-
-		// Look at transform
-		var locCamera = vec3.create();
-		var distCamera = 40.0;
-		locCamera[0] = distCamera*Math.sin(viewAngle);
-		locCamera[1] = 10;
-		locCamera[2] = distCamera*Math.cos(viewAngle);
-		var locTarget = vec3.fromValues(0,0,0); // Aim at the origin of the world coords
-		var vecUp = vec3.fromValues(0,1,0);
-		var TlookAt = mat4.create();
-		mat4.lookAt(TlookAt, locCamera, locTarget, vecUp);
-		
-		// Controls
-		if(keyD == true){
-			degD += speedOfDegRotationLR;
-			displacementLR += speedOfDisplacementLR;
-			if(degD >=360){degD = 0;}
-
-			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
-			//mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
-			
-		}else if(keyA == true){
-			degD += speedOfDegRotationLR;
-			displacementLR -= speedOfDisplacementLR;
-			if(degD >=360){degD = 0;}
-			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]);
-			//mat4.rotate(ballRotationTransform, ballRotationTransform, (degD)*Math.PI/180, [0, 0, 1]);
-		}
-
-
-		// Functions
-		// Draw definitions
 
 		function DrawSphere(){
 			// Create transform t_VP_CAM that incorporates
@@ -350,16 +350,17 @@ function setup() {
 		// Draw
 		DrawSphere();
 		
-
 		// draws runway
 		var tVP_PROJ_CAM3 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM3,tVP_PROJ, TlookAt);
 		drawRunway("red", tVP_PROJ_CAM3);
 
 		var tVP_PROJ_CAM4 = mat4.create();
-		mat4.multiply(tVP_PROJ_CAM4,tVP_PROJ, TlookAt);
-		//DrawVerticalPillar("black", tVP_PROJ_CAM4);
-		DrawAllVerticalPillars(tVP_PROJ_CAM4);
+		mat4.multiply(tVP_PROJ_CAM4, tVP_PROJ, TlookAt);
+		DrawVerticalPillar("black", tVP_PROJ_CAM4, 0, 0, 250);
+		DrawAllVerticalPillars();
+
+		collisionDetection();
 
 	}
 
@@ -368,25 +369,12 @@ function setup() {
 	// animators
 	function sphereAnimator(){
 		draw();
+		
 	}
 
 	function pillarAnimator(){
-		//posXPillar = Math.floor(Math.random() * (numberOfPillarPositions - 0) + 0);
-		//posZPillar -= 3;
-		
-		for(let i=0; i< pillarQueue.length; i++){
-
-			var p = pillarQueue[i];
-			p.posZ -= displacementZPillar;
-
-			if(p.posZ <= -40){
-				pillarQueue.shift();
-			}
-		}
-
-		
-
 		draw();
+		
 	}
     
     
@@ -448,11 +436,17 @@ function setup() {
 	
 	}
 
+	function recenterCamera(){
+		sliderY.value = 50;
+	}
+
 	window.addEventListener("keydown", onKeyDown, false);
 	window.addEventListener("keyup", onKeyUp, false);
 
-	sliderX.addEventListener("input",draw);
+	//sliderX.addEventListener("input",draw);
     sliderY.addEventListener("input",draw);
+
+	recenterButton.addEventListener("click", recenterCamera);
 
 	sphereAnimatorTracker = setInterval(sphereAnimator, speedOfSphereRender);
 	pillarAnimatorTracker = setInterval(pillarAnimator, speedOfPillarRender);
