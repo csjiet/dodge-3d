@@ -453,7 +453,7 @@ function setup() {
 			context.restore();
 		}
 
-		// Draw
+		//Draw
 		if(gameStart == false){
 			DrawLoadingScreen();
 		}
