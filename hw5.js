@@ -12,6 +12,8 @@ function setup() {
 
 	var recenterButton = document.getElementById('recenterButton');
 
+	var gameStart = false;
+
 	// Keyboard variables
 	var keyW = false;
 	var keyA = false;
@@ -179,18 +181,43 @@ function setup() {
 		
 		// Controls
 		if(keyD == true){
+			gameStart = true;
 			degD += speedOfDegRotationLR;
 			displacementLR += speedOfDisplacementLR;
+			
 			if(degD >=360){degD = 0;}
 
+			
 			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]); // MOVE LEFT/ RIGHT!!!!! USING DISPLACEMENTLR
+
+
+			context.save();
+			context.translate(350, 400);
+			context.font = "40px Arial";
+			context.fillStyle = "red";
+			context.textAlign = "center";
+			context.fillText(">>>", 40, 50);
+			context.restore();
+			
 			//mat4.rotate(ballRotationTransform, ballRotationTransform, (-degD)*Math.PI/180, [0, 0, 1]);
 			
 		}else if(keyA == true){
+			gameStart = true;
 			degD += speedOfDegRotationLR;
 			displacementLR -= speedOfDisplacementLR;
+		
 			if(degD >=360){degD = 0;}
+
 			mat4.fromTranslation(ballRotationTransform, [displacementLR, 0, 0]);
+
+			context.save();
+			context.translate(99, 400);
+			context.font = "40px Arial";
+			context.fillStyle = "red";
+			context.textAlign = "center";
+			context.fillText("<<<", 40, 50);
+			context.restore();
+			
 			//mat4.rotate(ballRotationTransform, ballRotationTransform, (degD)*Math.PI/180, [0, 0, 1]);
 		}
 
@@ -226,8 +253,8 @@ function setup() {
 			lineToTx([0 + lengthOfArrow, 0, rangeToTheCamera], t);
 
 			context.closePath();
-			context.stroke();
 			context.fill();
+			context.stroke();
 		}
 
 		function drawRunway(color, Tx){
@@ -299,7 +326,7 @@ function setup() {
 			context.beginPath();
 	    	context.strokeStyle = color;
 
-			let tempTx = Tx;
+			let tempTx = mat4.clone(Tx);
 
 			let positionOfPillar = mat4.create();
 			//mat4.fromTranslation(positionOfPillar, [arrayOfPillarXDisplacements[posXPillar], 0, posZPillar]);
@@ -414,9 +441,22 @@ function setup() {
 
 		}
 
+		function DrawLoadingScreen(){
+			context.save();
+			context.translate(240, 150);
+			context.font = "40px Arial";
+			context.fillStyle = "red";
+			context.textAlign = "center";
+			context.fillText("Press any button to start", 40, 50);
+			context.restore();
+		}
+
 		// Draw
+		if(gameStart == false){
+			DrawLoadingScreen();
+		}
+
 		DrawSphere();
-		
 		// draws runway
 		var tVP_PROJ_CAM3 = mat4.create();
 		mat4.multiply(tVP_PROJ_CAM3,tVP_PROJ, TlookAt);
@@ -427,25 +467,25 @@ function setup() {
 		DrawVerticalPillar("black", tVP_PROJ_CAM4, 0, 0, 250);
 		DrawAllVerticalPillars();
 
+		
 		var tVP_PROJ_CAM5 = mat4.create();
 		var arrowTranslationToLeft = mat4.create();
 		mat4.fromTranslation(arrowTranslationToLeft, [-10, -5, 0]);
 		mat4.multiply(tVP_PROJ_CAM5, tVP_PROJ, TlookAt);
 		mat4.multiply(tVP_PROJ_CAM5, tVP_PROJ_CAM5, arrowTranslationToLeft);
-		
 		DrawArrow("red", tVP_PROJ_CAM5);
-
-
-		// TERBALIKKAN!!!!!!!!! ARROW
+	
+	
 		var tVP_PROJ_CAM6 = mat4.create();
 		var arrowTranslationToLeft = mat4.create();
-		mat4.scale(arrowTranslationToLeft, arrowTranslationToLeft, [-100, -100,0]);
 		mat4.fromTranslation(arrowTranslationToLeft, [-10, -5, 0]);
+		var flipTranslationToRight = mat4.create();
+		mat4.scale(flipTranslationToRight, flipTranslationToRight, [-1, 1, 1]);
+		mat4.multiply(flipTranslationToRight, flipTranslationToRight, arrowTranslationToLeft);
 		mat4.multiply(tVP_PROJ_CAM6, tVP_PROJ, TlookAt);
-		mat4.multiply(tVP_PROJ_CAM6, tVP_PROJ_CAM6, arrowTranslationToLeft);
-		
+		mat4.multiply(tVP_PROJ_CAM6, tVP_PROJ_CAM6, flipTranslationToRight);
 		DrawArrow("red", tVP_PROJ_CAM6);
-
+		
 		collisionDetection();
 
 	}
