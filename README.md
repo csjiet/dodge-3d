@@ -5,6 +5,6 @@
 > **Play the game @**:<a href="gitpages">https://csjiet.github.io/CS559_HW5/hw5.html</a>
 
 <img src="./smashed.png" width=400>
-- **Technologies**: MacOS, Safari, Chrome;
+**Technologies**: MacOS, Safari, Chrome;
 
 
