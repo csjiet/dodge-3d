@@ -2,7 +2,7 @@
 
 > Dodge the incoming pillars and live to see another day!
 > 
-> **Play the game**:[HERE!](https://csjiet.github.io/dodge-3d/index.html)
+> **Play the game**:[HERE!](https://csjiet.github.io/dodge-3d/)
 
 <img src="./smashed.png" width=400>
 
